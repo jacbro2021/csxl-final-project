@@ -5,4 +5,10 @@ import { Component } from '@angular/core';
   templateUrl: './user-equipment.component.html',
   styleUrls: ['./user-equipment.component.css']
 })
-export class UserEquipmentComponent {}
+export class UserEquipmentComponent {
+  public static Route = {
+    path: 'user-equipment',
+    title: 'User Equipment Checkout',
+    component: UserEquipmentComponent
+  };
+}
