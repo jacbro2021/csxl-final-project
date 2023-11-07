@@ -36,4 +36,22 @@ export class EquipmentService {
     };
     return equipment1;
   }
+
+  trasnformAvailableToMap(): Map<String, number> {
+    let equipment: Equipment[] = this.getAllEquipment();
+
+    var equipmentMap = new Map<string, number>();
+
+    for (var item of equipment) {
+      const model = item.model;
+      if (item.isCheckedOut === false) {
+        if (!equipmentMap.has(item.model)) {
+          equipmentMap.set(model, 1);
+        } else {
+          equipmentMap.set(model, equipmentMap.get(model)! + 1);
+        }
+      }
+    }
+    return equipmentMap;
+  }
 }
