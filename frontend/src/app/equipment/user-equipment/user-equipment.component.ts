@@ -1,4 +1,6 @@
 import { Component } from '@angular/core';
+import { MatCardModule } from '../equipment.module';
+import { MatButtonModule } from '../equipment.module';
 
 @Component({
   selector: 'app-user-equipment',
