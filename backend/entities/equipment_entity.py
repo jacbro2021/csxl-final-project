@@ -89,3 +89,4 @@ class EquipmentEntity(EntityBase):
         self.model = model.model
         self.equipment_image = model.equipment_image
         self.is_checked_out = model.is_checked_out
+        self.condition = model.condition

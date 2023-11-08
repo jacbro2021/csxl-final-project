@@ -36,7 +36,6 @@ def insert_fake_data(session: Session):
     global equipment
 
     # Create entities for test equipment data
-    print("is this running?")
     entities = []
     for item in equipment:
         entity = EquipmentEntity.from_model(item)

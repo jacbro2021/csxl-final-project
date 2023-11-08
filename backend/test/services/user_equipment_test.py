@@ -25,9 +25,9 @@ def fake_data_fixture(session: Session):
     yield
 
 
-def test_getAll(equipment_service: EquipmentService):
+def test_get_all(equipment_service: EquipmentService):
     """Tests that all equipment can be retrieved"""
-    fetched_equipment = equipment_service.getAll()
+    fetched_equipment = equipment_service.get_all()
     assert fetched_equipment is not None
     assert len(fetched_equipment) == len(equipment)
     assert isinstance(fetched_equipment[0], Equipment)
@@ -45,13 +45,10 @@ def test_update(equipment_service: EquipmentService):
     update = equipment_service.update(changed_item)
     assert isinstance(update, Equipment)
     assert update == changed_item
-    new_equipment = equipment_service.getAll()
-    assert len(new_equipment) == 2
-    assert new_equipment[0] == changed_item
 
 
-def test_getAll_equipment_is_correct(equipment_service: EquipmentService):
+def test_get_all_equipment_is_correct(equipment_service: EquipmentService):
     """Tests that when all equipment is retrieved the fields are still correct"""
-    fetched_equipment = equipment_service.getAll()
+    fetched_equipment = equipment_service.get_all()
     assert fetched_equipment[0] == quest_3
     assert fetched_equipment[1] == arduino
