@@ -68,36 +68,37 @@ class EquipmentService:
         else:
             raise EquipmentNotFoundException(item.equipment_id)
 
-    def add_item(self, item: Equipment) -> Equipment:
-        """
-        Creates a new equipment entity and adds to the data base
+    # TODO: Uncomment during sp02 if we decide to add admin functions for adding/deleting equipment.
+    # def add_item(self, item: Equipment) -> Equipment:
+    #     """
+    #     Creates a new equipment entity and adds to the data base
 
-        Args:
-            model (Equipment): The model to insert into the db.
-
-
-        Returns:
-            Equipment: the inserted equipment.
-        """
-
-        entity = EquipmentEntity.from_model(item)
-        self._session.add(entity)
-        self._session.commit()
-        return entity.to_model()
-
-    def delete_item(self, item: Equipment) -> Equipment:
-        """
-        Delets an Equipment item from the database
-
-        Args:
-            model (Equipment): The model to delete from the db.
+    #     Args:
+    #         model (Equipment): The model to insert into the db.
 
 
-        Returns:
-            Equipment: the deleted equipment.
-        """
+    #     Returns:
+    #         Equipment: the inserted equipment.
+    #     """
 
-        entity = EquipmentEntity.from_model(item)
-        self._session.delete(entity)
-        self._session.commit()
-        return entity.to_model()
+    #     entity = EquipmentEntity.from_model(item)
+    #     self._session.add(entity)
+    #     self._session.commit()
+    #     return entity.to_model()
+
+    # def delete_item(self, item: Equipment) -> Equipment:
+    #     """
+    #     Delets an Equipment item from the database
+
+    #     Args:
+    #         model (Equipment): The model to delete from the db.
+
+
+    #     Returns:
+    #         Equipment: the deleted equipment.
+    #     """
+
+    #     entity = EquipmentEntity.from_model(item)
+    #     self._session.delete(entity)
+    #     self._session.commit()
+    #     return entity.to_model()
