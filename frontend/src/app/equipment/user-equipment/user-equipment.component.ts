@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
 import { MatCardModule } from '../equipment.module';
 import { MatButtonModule } from '../equipment.module';
+import { EquipmentService } from '../equipment.service';
+import { EquipmentType } from '../equipmentType.model';
 
 @Component({
   selector: 'app-user-equipment',
@@ -13,4 +15,9 @@ export class UserEquipmentComponent {
     title: 'User Equipment Checkout',
     component: UserEquipmentComponent
   };
+
+  public equipmentTypes: EquipmentType[] =
+    this.equipmentService.transformToEquipmentType();
+
+  constructor(public equipmentService: EquipmentService) {}
 }

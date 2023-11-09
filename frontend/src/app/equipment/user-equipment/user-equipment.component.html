@@ -1,3 +1,5 @@
-<div class="container">
-  <equipment-card />
+<div class="equipment-container">
+  <equipment-card
+    [equipmentType]="equipment"
+    *ngFor="let equipment of equipmentTypes" />
 </div>

@@ -7,7 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 @NgModule({
   //  eslint-disable-next-line prettier/prettier
   declarations: [UserEquipmentComponent, EquipmentCard],
-  imports: [CommonModule, MatCardModule]
+  imports: [CommonModule, MatCardModule, MatButtonModule]
 })
 export class EquipmentModule {}
 export { MatCardModule };

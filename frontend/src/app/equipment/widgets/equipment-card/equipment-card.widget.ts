@@ -4,7 +4,7 @@
  */
 
 import { Component, Input } from '@angular/core';
-import { Equipment } from '../../equipment.model';
+import { EquipmentType } from '../../equipmentType.model';
 
 @Component({
   selector: 'equipment-card',
@@ -13,7 +13,8 @@ import { Equipment } from '../../equipment.model';
 })
 export class EquipmentCard {
   /** Inputs and outputs go here */
-  // @Input() equipment!: Equipment;
-  /** Constructor */
+
+  @Input() equipmentType!: EquipmentType;
+
   constructor() {}
 }

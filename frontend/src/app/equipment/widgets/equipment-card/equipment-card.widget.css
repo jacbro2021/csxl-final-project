@@ -6,3 +6,8 @@
 .button-style {
     text-decoration: none;
 }
+
+img{
+    max-height: 250px;
+    max-width: 250px;
+}

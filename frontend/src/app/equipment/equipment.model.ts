@@ -7,4 +7,5 @@ export interface Equipment {
   id: string;
   model: string;
   isCheckedOut: boolean;
+  imgURL: string;
 }
