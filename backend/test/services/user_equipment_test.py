@@ -66,7 +66,7 @@ def test_get_all_types_inventory_correct(equipment_service: EquipmentService):
     """Tests for correct num_available for each equipment type"""
     fetched_equipment_types = equipment_service.get_all_types()
     assert fetched_equipment_types[0].num_available == 1
-    assert fetched_equipment_types[1].num_available == 1
+    assert fetched_equipment_types[1].num_available == 2
 
 
 def test_get_all_types_when_zero_available(equipment_service: EquipmentService):
