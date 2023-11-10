@@ -17,14 +17,14 @@ __license__ = "MIT"
 quest_3 = Equipment(
     equipment_id=1,
     model="Meta Quest 3",
-    equipment_image="placeholder",
+    equipment_image="https://i.pinimg.com/736x/db/06/6f/db066fa23a204492e71eba3113e98bce.jpg",
     condition=10,
     is_checked_out=False,
 )
 arduino = Equipment(
     equipment_id=2,
     model="Arduino Uno",
-    equipment_image="placeholder",
+    equipment_image="https://w7.pngwing.com/pngs/76/730/png-transparent-arduino-uno-microcontroller-atmega328-electronics-arduino-uno-electronics-electronic-device-microcontroller-thumbnail.png",
     condition=10,
     is_checked_out=False,
 )
