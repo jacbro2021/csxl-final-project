@@ -4,8 +4,9 @@
  */
 
 export interface Equipment {
-  id: string;
+  id: number;
   model: string;
-  isCheckedOut: boolean;
-  imgURL: string;
+  equipment_image: string;
+  condition: number;
+  is_checked_out: boolean;
 }

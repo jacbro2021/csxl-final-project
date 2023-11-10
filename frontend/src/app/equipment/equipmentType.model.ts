@@ -6,6 +6,6 @@
 
 export interface EquipmentType {
   model: string;
-  numAvailable: number;
-  imgURL: string;
+  num_available: number;
+  equipment_img_URL: string;
 }

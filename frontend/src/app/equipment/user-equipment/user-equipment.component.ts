@@ -3,6 +3,7 @@ import { MatCardModule } from '../equipment.module';
 import { MatButtonModule } from '../equipment.module';
 import { EquipmentService } from '../equipment.service';
 import { EquipmentType } from '../equipmentType.model';
+import { Observable, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-user-equipment',
@@ -16,8 +17,12 @@ export class UserEquipmentComponent {
     component: UserEquipmentComponent
   };
 
-  public equipmentTypes: EquipmentType[] =
-    this.equipmentService.transformToEquipmentType();
+  public equipmentTypes$: EquipmentType[] | undefined;
+  private subsrciption!: Subscription;
 
-  constructor(public equipmentService: EquipmentService) {}
+  constructor(public equipmentService: EquipmentService) {
+    this.subsrciption = equipmentService
+      .getAllEquipmentTypes()
+      .subscribe((equipment) => (this.equipmentTypes$ = equipment));
+  }
 }
