@@ -1,5 +1,6 @@
 """Tests for the equipment service"""
 
+from backend.models.equipment_type import EquipmentType
 from ...models.equipment import Equipment
 from ...services.equipment import EquipmentService
 import pytest
@@ -52,3 +53,33 @@ def test_get_all_equipment_is_correct(equipment_service: EquipmentService):
     fetched_equipment = equipment_service.get_all()
     assert fetched_equipment[0] == quest_3
     assert fetched_equipment[1] == arduino
+
+
+def test_get_all_types(equipment_service: EquipmentService):
+    """Tests that all equipment properly converted to equipment type"""
+    fetched_equipment_types = equipment_service.get_all_types()
+    assert fetched_equipment_types is not None
+    assert isinstance(fetched_equipment_types[0], EquipmentType)
+
+
+def test_get_all_types_inventory_correct(equipment_service: EquipmentService):
+    """Tests for correct num_available for each equipment type"""
+    fetched_equipment_types = equipment_service.get_all_types()
+    assert fetched_equipment_types[0].num_available == 1
+    assert fetched_equipment_types[1].num_available == 1
+
+
+def test_get_all_types_when_zero_available(equipment_service: EquipmentService):
+    """Tests for correct num_available when equipment is checked out"""
+    # first update database so Meta Quest 3 is checked out
+    changed_item = Equipment(
+        equipment_id=1,
+        model="Meta Quest 3",
+        equipment_image="placeholder",
+        condition=8,
+        is_checked_out=True,
+    )
+    _ = equipment_service.update(changed_item)
+
+    fetched_equipment_types = equipment_service.get_all_types()
+    assert fetched_equipment_types[1].num_available == 0

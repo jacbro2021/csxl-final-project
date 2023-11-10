@@ -6,6 +6,8 @@ from fastapi import Depends
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from backend.models.equipment_type import EquipmentType
+
 from ..database import db_session
 from ..models.equipment import Equipment
 from ..entities.equipment_entity import EquipmentEntity
@@ -68,6 +70,43 @@ class EquipmentService:
         else:
             raise EquipmentNotFoundException(item.equipment_id)
 
+    def get_all_types(self) -> list[EquipmentType]:
+        all_equipment = self.get_all()
+        equipment_types = []
+
+        for equipment in all_equipment:
+            # flag to keep track whether the equipment model was succesfully mapped to a equipment_type entry
+            caught = False
+            for equipment_type in equipment_types:
+                if equipment.model == equipment_type.model:
+                    # If equipment is currently checked out, not added to num_available
+                    if not equipment.is_checked_out:
+                        equipment_type.num_available += 1
+
+                    # equipment was successfully mapped to an existing equipment type in the return list
+                    caught = True
+                    break
+            if not caught:
+                # If equipment passed through type list without getting caught, this is the first time encountering its type
+
+                if equipment.is_checked_out:
+                    # If the equipment is checked out, add its type to the type list, but initialize num_available to 0
+                    new_type = EquipmentType(
+                        model=equipment.model,
+                        num_available=0,
+                        equipment_img_URL=equipment.equipment_image,
+                    )
+                else:
+                    # If the equipment is not checked out, add its type to the type list and initialize num_available to 1
+                    new_type = EquipmentType(
+                        model=equipment.model,
+                        num_available=1,
+                        equipment_img_URL=equipment.equipment_image,
+                    )
+                equipment_types.append(new_type)
+
+        return equipment_types
+
     # TODO: Uncomment during sp02 if we decide to add admin functions for adding/deleting equipment.
     # def add_item(self, item: Equipment) -> Equipment:
     #     """
@@ -75,7 +114,6 @@ class EquipmentService:
 
     #     Args:
     #         model (Equipment): The model to insert into the db.
-
 
     #     Returns:
     #         Equipment: the inserted equipment.
@@ -92,7 +130,6 @@ class EquipmentService:
 
     #     Args:
     #         model (Equipment): The model to delete from the db.
-
 
     #     Returns:
     #         Equipment: the deleted equipment.

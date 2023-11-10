@@ -3,6 +3,8 @@
 This API is used to manage and list user equipment checkouts"""
 
 from fastapi import APIRouter, Depends, HTTPException
+
+from backend.models.equipment_type import EquipmentType
 from ...models.equipment import Equipment
 from ...services.equipment import EquipmentService
 
@@ -30,3 +32,10 @@ def update(
     """Updates an item of equipment and returns the updated item as an equipment model"""
     return equipment_service.update(item)
 
+
+@api.get("/get_all_types", tags=["Equipment"])
+def get_all_types(
+    equipment_service: EquipmentService = Depends(),
+) -> list[EquipmentType]:
+    """Gets all unique equipment types from database with correct available inventory and returns to the user as a list of equipment type models"""
+    return equipment_service.get_all_types()
