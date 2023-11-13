@@ -16,10 +16,11 @@ __license__ = "MIT"
 
 
 class DeviceType(Enum):
-    META_QUEST_3 = (
-        "https://i.pinimg.com/736x/db/06/6f/db066fa23a204492e71eba3113e98bce.jpg"
+    META_QUEST_3 = "https://s7d1.scene7.com/is/image/dmqualcommprod/meta-quest-3-1?$QC_Responsive$&fmt=png-alpha"
+
+    ARDUINO_UNO = (
+        "https://www.circuitbasics.com/wp-content/uploads/2020/05/Arduino-Uno.png"
     )
-    ARDUINO_UNO = "https://w7.pngwing.com/pngs/76/730/png-transparent-arduino-uno-microcontroller-atmega328-electronics-arduino-uno-electronics-electronic-device-microcontroller-thumbnail.png"
 
 
 quest_3 = Equipment(
