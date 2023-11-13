@@ -7,6 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from backend.models.equipment_type import EquipmentType
+from .permission import PermissionService
 
 from ..database import db_session
 from ..models.equipment import Equipment
@@ -18,7 +19,7 @@ from .exceptions import EquipmentNotFoundException
 # Excluding this import for now, however, we will need to use in later sprints for handling different types of users
 # from .permission import PermissionService
 
-__authors__ = ["Jacob Brown"]
+__authors__ = ["Jacob Brown, Ayden Franklin"]
 __copyright__ = "Copyright 2023"
 __license__ = "MIT"
 
@@ -32,6 +33,7 @@ class EquipmentService:
     ):
         """Initialize the session for querying the db."""
         self._session = session
+        self._permission = PermissionService(session=self._session)
 
     def get_all(self) -> list[Equipment]:
         """Return a list of all equipment in the db."""
@@ -42,8 +44,8 @@ class EquipmentService:
         # convert the query results into 'Equipment' models and return as a list
         return [result.to_model() for result in query_result]
 
-    # TODO: add param for user and save users pid in equipments list of pids and implement permissions
-    def update(self, item: Equipment) -> Equipment:
+    # TODO: add param for user and save users pid in equipments list of pids 
+    def update(self, item: Equipment, subject: User) -> Equipment:
         """
         updates a specific equipment item.
 
@@ -54,6 +56,9 @@ class EquipmentService:
         Returns:
             Equipment: the checked out equipment.
         """
+
+        # ensure user has ambassador permissions
+        self._permission.enforce(subject, "equipment.update", "equipment")
 
         # get item with matching equipment_id from db
         query = select(EquipmentEntity).where(
@@ -71,6 +76,16 @@ class EquipmentService:
             raise EquipmentNotFoundException(item.equipment_id)
 
     def get_all_types(self) -> list[EquipmentType]:
+        """
+        Converts equipment into list of EquipmentType models
+
+        Args:
+            None.
+
+        Returns:
+            the unique names of all equipment and the number of each type of equipment.
+        """
+
         all_equipment = self.get_all()
         equipment_types = []
 
@@ -106,6 +121,7 @@ class EquipmentService:
                 equipment_types.append(new_type)
 
         return equipment_types
+
 
     # TODO: Uncomment during sp02 if we decide to add admin functions for adding/deleting equipment.
     # def add_item(self, item: Equipment) -> Equipment:

@@ -1,12 +1,16 @@
 """Tests for the equipment service"""
 
+from unittest.mock import create_autospec
 from backend.models.equipment_type import EquipmentType
+from backend.services.exceptions import UserPermissionException
 from ...models.equipment import Equipment
 from ...services.equipment import EquipmentService
+from ...services.user import UserService
 import pytest
 from sqlalchemy.orm import Session
 
 from .user_equipment_data import equipment, quest_3, arduino, insert_fake_data
+from .user_data import user, ambassador
 
 
 @pytest.fixture(autouse=True)
@@ -43,10 +47,32 @@ def test_update(equipment_service: EquipmentService):
         condition=8,
         is_checked_out=True,
     )
-    update = equipment_service.update(changed_item)
+    equipment_service._permission = create_autospec(
+        equipment_service._permission
+    )
+
+    update = equipment_service.update(changed_item, ambassador)
+
+    equipment_service._permission.enforce.assert_called_with(
+        ambassador, "equipment.update", "equipment"
+    )
+
     assert isinstance(update, Equipment)
     assert update == changed_item
 
+def test_update_not_authorized(equipment_service: EquipmentService):
+    """Tests that an item cannot be updated when the user does not have ambassador permissions"""
+    changed_item = Equipment(
+        equipment_id=1,
+        model="Meta Quest 3",
+        equipment_image="placeholder",
+        condition=8,
+        is_checked_out=True,
+    )
+    with pytest.raises(Exception) as e: 
+        equipment_service.update(changed_item, user)
+        # Fail test if no exception is thrown 
+        pytest.fail()
 
 def test_get_all_equipment_is_correct(equipment_service: EquipmentService):
     """Tests that when all equipment is retrieved the fields are still correct"""
@@ -79,7 +105,17 @@ def test_get_all_types_when_zero_available(equipment_service: EquipmentService):
         condition=8,
         is_checked_out=True,
     )
-    _ = equipment_service.update(changed_item)
+    equipment_service._permission = create_autospec(
+        equipment_service._permission
+    )
+
+    update = equipment_service.update(changed_item, ambassador)
+
+    equipment_service._permission.enforce.assert_called_with(
+        ambassador, "equipment.update", "equipment"
+    )
+    
+    _ = equipment_service.update(changed_item, ambassador)
 
     fetched_equipment_types = equipment_service.get_all_types()
     assert fetched_equipment_types[1].num_available == 0

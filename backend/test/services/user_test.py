@@ -15,6 +15,7 @@ from . import user_data
 from .permission_data import (
     ambassador_permission,
     ambassador_permission_coworking_reservation,
+    ambassador_permission_equipment,
 )
 
 __authors__ = ["Kris Jordan"]
@@ -33,8 +34,8 @@ def test_get(user_svc_integration: UserService):
     assert user.permissions == [
         ambassador_permission,
         ambassador_permission_coworking_reservation,
+        ambassador_permission_equipment,
     ]
-
 
 def test_get_nonexistent(user_svc_integration: UserService):
     """Test that a nonexistent PID returns None."""
