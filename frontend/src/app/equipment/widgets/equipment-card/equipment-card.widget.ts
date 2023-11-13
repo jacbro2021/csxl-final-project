@@ -5,6 +5,7 @@
 
 import { Component, Input } from '@angular/core';
 import { EquipmentType } from '../../equipmentType.model';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'equipment-card',
@@ -16,5 +17,5 @@ export class EquipmentCard {
 
   @Input() equipmentType!: EquipmentType;
 
-  constructor() {}
+  constructor(public router: Router) {}
 }

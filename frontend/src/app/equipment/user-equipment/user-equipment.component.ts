@@ -1,6 +1,4 @@
 import { Component } from '@angular/core';
-import { MatCardModule } from '../equipment.module';
-import { MatButtonModule } from '../equipment.module';
 import { EquipmentService } from '../equipment.service';
 import { EquipmentType } from '../equipmentType.model';
 import { Observable, Subscription } from 'rxjs';
@@ -12,7 +10,7 @@ import { Observable, Subscription } from 'rxjs';
 })
 export class UserEquipmentComponent {
   public static Route = {
-    path: 'user-equipment',
+    path: '',
     title: 'User Equipment Checkout',
     component: UserEquipmentComponent
   };

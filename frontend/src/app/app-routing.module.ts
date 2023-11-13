@@ -8,7 +8,7 @@ import { CoworkingPageComponent } from './coworking/coworking-home/coworking-hom
 import { AmbassadorPageComponent } from './coworking/ambassador-home/ambassador-home.component';
 import { AboutComponent } from './about/about.component';
 import { UserEquipmentComponent } from './equipment/user-equipment/user-equipment.component';
-
+import { WaiverComponent } from './equipment/waiver/waiver.component';
 const routes: Routes = [
   HomeComponent.Route,
   AboutComponent.Route,
@@ -42,6 +42,11 @@ const routes: Routes = [
     title: 'Experimental',
     loadChildren: () =>
       import('./event/event.module').then((m) => m.EventModule)
+  },
+  {
+    path: 'equipment',
+    loadChildren: () =>
+      import('./equipment/equipment.module').then((m) => m.EquipmentModule)
   }
 ];
 
