@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from backend.entities.permission_entity import PermissionEntity
 
 from backend.models.permission import Permission
-from backend.test.services import role_data
+from backend.test.services.role_data import ambassador_role
 from .reset_table_id_seq import reset_table_id_seq
 from ...entities.equipment_entity import EquipmentEntity
 from ...models.equipment import Equipment
@@ -33,6 +33,8 @@ quest_3 = Equipment(
     equipment_image=DeviceType.META_QUEST_3.value,
     condition=10,
     is_checked_out=False,
+    condition_notes=[],
+    checkout_history=[],
 )
 arduino = Equipment(
     equipment_id=2,
@@ -40,6 +42,8 @@ arduino = Equipment(
     equipment_image=DeviceType.ARDUINO_UNO.value,
     condition=10,
     is_checked_out=False,
+    condition_notes=[],
+    checkout_history=[],
 )
 
 arduino2 = Equipment(
@@ -48,6 +52,8 @@ arduino2 = Equipment(
     equipment_image=DeviceType.ARDUINO_UNO.value,
     condition=10,
     is_checked_out=False,
+    condition_notes=[],
+    checkout_history=[],
 )
 
 arduino3 = Equipment(
@@ -56,17 +62,22 @@ arduino3 = Equipment(
     equipment_image=DeviceType.ARDUINO_UNO.value,
     condition=10,
     is_checked_out=True,
+    condition_notes=[],
+    checkout_history=[],
 )
+
 quest_3_two = Equipment(
     equipment_id=5,
     model="Meta Quest 3",
     equipment_image=DeviceType.META_QUEST_3.value,
-    condition=10,
+    condition=9,
     is_checked_out=True,
+    condition_notes=["Lights on fire whenever it is turned on."],
+    checkout_history=[111111111],
 )
 
 ambassador_permission_equipment = Permission(
-    id=1, action="equipment.update", resource="equipment"
+    id=4, action="equipment.update", resource="equipment"
 )
 
 equipment = [quest_3, arduino, arduino2, arduino3, quest_3_two]
@@ -85,7 +96,7 @@ def insert_fake_data(session: Session):
     # Add ambassador equipment permission for testing
     ambassador_entity = PermissionEntity(
         id=ambassador_permission_equipment.id,
-        role_id=role_data.ambassador_role.id,
+        role_id=ambassador_role.id,
         action=ambassador_permission_equipment.action,
         resource=ambassador_permission_equipment.resource,
     )

@@ -20,6 +20,5 @@ class Equipment(BaseModel):
     equipment_image: str
     condition: int = 10
     is_checked_out: bool = False
-    # TODO
-    # notes: list[str]
-    #  # list of PIDs for students that have checkout this equipment
+    condition_notes: list[str]
+    checkout_history: list[int]

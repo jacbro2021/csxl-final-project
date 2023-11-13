@@ -1,6 +1,6 @@
 """Definition of SQLAlchemy table-backed object mapping entity for Equipment."""
 
-from sqlalchemy import Boolean, Integer, String
+from sqlalchemy import Boolean, Integer, String, ARRAY
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import Self
 
@@ -33,9 +33,9 @@ class EquipmentEntity(EntityBase):
     # Shows the current condition of the item
     condition: Mapped[int] = mapped_column(Integer)
     # Notes on how the condition of the item has changed throughout checkouts
-    # TODO
+    condition_notes: Mapped[list[str]] = mapped_column(ARRAY(String), nullable=True, default=None)
     # List of the PIDs of students who have checkout out this item
-    # TODO
+    checkout_history: Mapped[list[int]] = mapped_column(ARRAY(Integer), nullable=True, default=None)
 
     @classmethod
     def from_model(cls, model: Equipment) -> Self:
@@ -54,6 +54,8 @@ class EquipmentEntity(EntityBase):
             equipment_image=model.equipment_image,
             is_checked_out=model.is_checked_out,
             condition=model.condition,
+            condition_notes=model.condition_notes,
+            checkout_history=model.checkout_history,
         )
 
     def to_model(self) -> Equipment:
@@ -69,6 +71,8 @@ class EquipmentEntity(EntityBase):
             equipment_image=self.equipment_image,
             is_checked_out=self.is_checked_out,
             condition=self.condition,
+            condition_notes=self.condition_notes,
+            checkout_history=self.checkout_history,
         )
 
     def update(self, model: Equipment) -> None:
@@ -90,3 +94,5 @@ class EquipmentEntity(EntityBase):
         self.equipment_image = model.equipment_image
         self.is_checked_out = model.is_checked_out
         self.condition = model.condition
+        self.condition_notes = model.condition_notes
+        self.checkout_history = model.checkout_history
