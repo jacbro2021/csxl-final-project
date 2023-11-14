@@ -104,7 +104,7 @@ def insert_fake_data(session: Session):
 
     # Reset table IDs to prevent ID conflicts
     reset_table_id_seq(session, EquipmentEntity, EquipmentEntity.id, len(equipment) + 1)
-    reset_table_id_seq(session, PermissionEntity, PermissionEntity.id, 2)
+    reset_table_id_seq(session, PermissionEntity, PermissionEntity.id, 5)
 
     # Commit all changes
     session.commit()

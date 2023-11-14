@@ -20,5 +20,5 @@ class Equipment(BaseModel):
     equipment_image: str
     condition: int = 10
     is_checked_out: bool = False
-    condition_notes: list[str]
-    checkout_history: list[int]
+    condition_notes: list[str] = []
+    checkout_history: list[int] = []

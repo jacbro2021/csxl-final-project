@@ -36,8 +36,7 @@ class User(UserIdentity, BaseModel):
     github: str = ""
     github_id: int | None = None
     github_avatar: str | None = None
-    signed_equipment_wavier: int
-
+    signed_equipment_wavier: bool = False
 
 
 class NewUser(User, BaseModel):

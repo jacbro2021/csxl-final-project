@@ -15,7 +15,6 @@ from . import user_data
 from .permission_data import (
     ambassador_permission,
     ambassador_permission_coworking_reservation,
-    ambassador_permission_equipment,
 )
 
 __authors__ = ["Kris Jordan"]
@@ -34,8 +33,8 @@ def test_get(user_svc_integration: UserService):
     assert user.permissions == [
         ambassador_permission,
         ambassador_permission_coworking_reservation,
-        ambassador_permission_equipment,
     ]
+
 
 def test_get_nonexistent(user_svc_integration: UserService):
     """Test that a nonexistent PID returns None."""
@@ -152,7 +151,12 @@ def test_list_enforces_permission(
 
 def test_create_user_as_user_registration(user_svc: UserService):
     """Test that a user can be created for registration purposes."""
-    new_user = NewUser(pid=123456789, onyen="new_user", email="new_user@unc.edu")
+    new_user = NewUser(
+        pid=123456789,
+        onyen="new_user",
+        email="new_user@unc.edu",
+        signed_equipment_wavier=False,
+    )
     created_user = user_svc.create(new_user, new_user)
     assert created_user is not None
     assert created_user.id is not None
@@ -160,7 +164,12 @@ def test_create_user_as_user_registration(user_svc: UserService):
 
 def test_create_user_as_root(user_svc: UserService):
     """Test that a user can be created by a root user as an administrator."""
-    new_user = NewUser(pid=123456789, onyen="new_user", email="new_user@unc.edu")
+    new_user = NewUser(
+        pid=123456789,
+        onyen="new_user",
+        email="new_user@unc.edu",
+        signed_equipment_wavier=False,
+    )
     created_user = user_svc.create(root, new_user)
     assert created_user is not None
     assert created_user.id is not None
@@ -170,7 +179,12 @@ def test_create_user_enforces_permission(
     user_svc: UserService, permission_svc_mock: PermissionService
 ):
     """Test that user.create on user/ is enforced by the create method"""
-    new_user = NewUser(pid=123456789, onyen="new_user", email="new_user@unc.edu")
+    new_user = NewUser(
+        pid=123456789,
+        onyen="new_user",
+        email="new_user@unc.edu",
+        signed_equipment_wavier=False,
+    )
     user_svc.create(root, new_user)
     permission_svc_mock.enforce.assert_called_with(root, "user.create", "user/")
 
