@@ -5,6 +5,7 @@
 
 export interface Equipment {
   id: number;
+  equipment_id: number;
   model: string;
   equipment_image: string;
   condition: number;

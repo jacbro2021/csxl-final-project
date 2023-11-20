@@ -33,9 +33,13 @@ class EquipmentEntity(EntityBase):
     # Shows the current condition of the item
     condition: Mapped[int] = mapped_column(Integer)
     # Notes on how the condition of the item has changed throughout checkouts
-    condition_notes: Mapped[list[str]] = mapped_column(ARRAY(String), nullable=True, default=None)
+    condition_notes: Mapped[list[str]] = mapped_column(
+        ARRAY(String), nullable=True, default=None
+    )
     # List of the PIDs of students who have checkout out this item
-    checkout_history: Mapped[list[int]] = mapped_column(ARRAY(Integer), nullable=True, default=None)
+    checkout_history: Mapped[list[int]] = mapped_column(
+        ARRAY(Integer), nullable=True, default=None
+    )
 
     @classmethod
     def from_model(cls, model: Equipment) -> Self:

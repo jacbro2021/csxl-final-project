@@ -9,6 +9,7 @@ import { AmbassadorPageComponent } from './coworking/ambassador-home/ambassador-
 import { AboutComponent } from './about/about.component';
 import { UserEquipmentComponent } from './equipment/user-equipment/user-equipment.component';
 import { WaiverComponent } from './equipment/waiver/waiver.component';
+import { AmbassadorEquipmentComponent } from './equipment/ambassador-equipment/ambassador-equipment.component';
 const routes: Routes = [
   HomeComponent.Route,
   AboutComponent.Route,
@@ -17,6 +18,7 @@ const routes: Routes = [
   CoworkingPageComponent.Route,
   AmbassadorPageComponent.Route,
   UserEquipmentComponent.Route,
+  AmbassadorEquipmentComponent.Route,
   {
     path: 'coworking',
     title: 'Cowork in the XL',

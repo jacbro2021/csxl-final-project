@@ -48,7 +48,7 @@ user = User(
     first_name="Sally",
     last_name="Student",
     pronouns="She / They",
-    signed_equipment_wavier=True
+    signed_equipment_wavier=False,
 )
 
 users = [root, ambassador, user]

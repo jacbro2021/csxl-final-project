@@ -1,0 +1,37 @@
+<div class="checkout-request-container">
+  <checkout-request-card
+    *ngIf="
+      checkoutRequestsLength && checkoutRequestsLength >= 1;
+      else noUpcoming
+    "
+    [checkoutRequests]="checkoutRequests$"
+    (approveRequest)="approveRequest($event)"
+    (cancelRequest)="cancelRequest($event)" />
+
+  <ng-template #noUpcoming>
+    <mat-card class="content" appearance="outlined">
+      <mat-card-header>
+        <mat-card-title> Equipment Checkout Requests </mat-card-title>
+      </mat-card-header>
+      <mat-card-content> No upcoming checkout requests. </mat-card-content>
+    </mat-card>
+  </ng-template>
+</div>
+
+<div>
+  <staged-checkout-request-card
+    *ngIf="stagedCheckoutRequests.length > 0; else noStagedRequests"
+    [checkoutRequests]="stagedCheckoutRequests"
+    (approveRequest)="(approveStagedRequest)" />
+
+  <ng-template #noStagedRequests>
+    <mat-card class="content" appearance="outlined">
+      <mat-card-header>
+        <mat-card-title> Staged Checkout Requests </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        There are no staged requests at this time.
+      </mat-card-content>
+    </mat-card>
+  </ng-template>
+</div>

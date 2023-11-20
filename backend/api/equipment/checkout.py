@@ -3,11 +3,17 @@
 This API is used to manage and list user equipment checkouts"""
 
 from fastapi import APIRouter, Depends, HTTPException
+from backend.models.equipment_checkout_request import EquipmentCheckoutRequest
 
 from backend.models.equipment_type import EquipmentType
 from backend.models.user import User
+from backend.services.exceptions import WaiverNotSignedException
 from ...models.equipment import Equipment
-from ...services.equipment import EquipmentService
+from ...services.equipment import (
+    DuplicateEquipmentCheckoutRequestException,
+    EquipmentCheckoutRequestNotFoundException,
+    EquipmentService,
+)
 
 from backend.api.authentication import registered_user
 
@@ -35,7 +41,7 @@ def get_all(
     Returns:
         List of equipment in the database
     """
-    
+
     return equipment_service.get_all()
 
 
@@ -79,10 +85,131 @@ def get_all_types(
         equipment_service: a valid 'EquipmentService'
 
     Returns:
-        Organization: Created organization
-
-    Raises:
-        HTTPException 422 if create() raises an Exception
+        List of equipment types.
     """
 
     return equipment_service.get_all_types()
+
+
+@api.post("/add_request", tags=["Equipment"])
+def add_request(
+    equipmentCheckoutRequest: EquipmentCheckoutRequest,
+    equipmentService: EquipmentService = Depends(),
+    subject: User = Depends(registered_user),
+) -> EquipmentCheckoutRequest:
+    """
+    Adds a new checkout request.
+
+    Parameters:
+        equipment_service: a valid 'EquipmentService'
+        subject: a valid registered user
+        equipmentCheckoutRequest: a valid equipmentCheckoutRequest
+
+    Returns:
+        Newly created equipment checkout request
+
+    Raises:
+        WavierNotSignedException if user has not signed waiver
+
+    """
+    try:
+        # attempt to add a checkout request
+        return equipmentService.add_request(equipmentCheckoutRequest, subject)
+    except DuplicateEquipmentCheckoutRequestException as e:
+        # raise http exception if user has already requested to check out an item of the same model
+        raise HTTPException(status_code=403, detail=str(e))
+    except WaiverNotSignedException as e:
+        raise HTTPException(status_code=451, detail=str(e))
+
+
+@api.delete("/delete_request", tags=["Equipment"])
+def delete_request(
+    equipmentCheckoutRequest: EquipmentCheckoutRequest,
+    equipmentService: EquipmentService = Depends(),
+    subject: User = Depends(registered_user),
+) -> None:
+    """
+    Deletes an existing checkout request
+
+    Parameters:
+        equipment_service: a valid 'EquipmentService'
+        subject: a valid registered user
+        equipmentCheckoutRequest: a valid equipmentCheckoutRequest
+
+    Returns:
+        None
+
+    Raises:
+        EquipmentCheckoutRequestNotFoundException if request does not exist
+    """
+
+    try:
+        # attempt to delete a checkout request
+        return equipmentService.delete_request(subject, equipmentCheckoutRequest)
+    except EquipmentCheckoutRequestNotFoundException as e:
+        # raise http exception if the checkout request to be deleted is not found
+        raise HTTPException(status_code=422, detail=str(e))
+
+
+@api.get("/get_all_requests", tags=["Equipment"])
+def get_all_requests(
+    equipmentService: EquipmentService = Depends(),
+    subject: User = Depends(registered_user),
+) -> list[EquipmentCheckoutRequest]:
+    """
+    Gets all pending checkout requests
+
+    Parameters:
+        equipmentService: a valid 'EquipmentService'
+        subject: a valid registered user
+
+    Returns:
+        List of all pending checkout requests
+    """
+
+    return equipmentService.get_all_requests(subject)
+
+
+@api.get("/get_equipment_for_request/{model}", tags=["Equipment"])
+def get_all_for_request(
+    model: str,
+    equipmentService: EquipmentService = Depends(),
+    subject: User = Depends(registered_user),
+) -> list[Equipment]:
+    """
+    Gets all available equipment for a confirmed checkout request
+
+    Parameters:
+        model: An equipment type as a string
+        equipment_service: a valid 'EquipmentService'
+        subject: a valid registered user
+
+    Returns:
+        List of all available requested equipment
+    """
+
+    return equipmentService.get_equipment_for_request(subject, model)
+
+
+@api.put("/update_waiver_field", tags=["Equipment"])
+def update_waiver_field(
+    equipment_service: EquipmentService = Depends(),
+    subject: User = Depends(registered_user),
+) -> User:
+    """
+    Update the signed waiver field of a user
+
+    Parameters:
+        equipment_service: a valid 'EquipmentService'
+        subject: a valid User model representing the currently logged in User
+
+    Returns:
+        User: the updated User model
+    """
+
+    try:
+        # Attempt to update user's signed waiver field
+        return equipment_service.update_waiver_signed_field(subject)
+    except Exception as e:
+        # Raise exception if field cannot be updated
+        raise HTTPException(status_code=422, detail=str(e))

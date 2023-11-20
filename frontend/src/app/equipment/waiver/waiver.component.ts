@@ -9,6 +9,9 @@ import {
   Validators
 } from '@angular/forms';
 import { ErrorStateMatcher } from '@angular/material/core';
+import { Profile } from 'src/app/models.module';
+import { Subscription } from 'rxjs';
+import { ProfileService } from 'src/app/profile/profile.service';
 
 @Component({
   selector: 'app-equipment-waiver',
@@ -21,16 +24,34 @@ export class WaiverComponent {
     title: 'Sign Waiver',
     component: WaiverComponent
   };
+
+  private profile: Profile | undefined;
+  private profileSubscription!: Subscription;
+
   //Used to check to see if signature field is not empty
   formControl = new FormControl('', [Validators.required]);
   matcher = new ErrorStateMatcher();
 
-  onSubmit() {
-    //EquipmentService.updateWaiverStatus();        //TOD: implement this method in equipment service to update waiver completed field for user
+  constructor(
+    private equipmentService: EquipmentService,
+    private profileSvc: ProfileService,
+    public router: Router
+  ) {
+    this.profileSubscription = this.profileSvc.profile$.subscribe(
+      (profile) => (this.profile = profile)
+    );
   }
 
-  constructor(
-    equipmentService: EquipmentService,
-    public router: Router
-  ) {}
+  // after agree to terms is clicked on waiver, update waiver field and route to equipment checkout component
+  onSubmit() {
+    var updated_profile = this.profile;
+    updated_profile!.signed_equipment_wavier = true;
+
+    this.equipmentService.update_waiver_field().subscribe({
+      next: (value) => {
+        this.router.navigateByUrl('equipment');
+      },
+      error: (err) => console.log(err)
+    });
+  }
 }

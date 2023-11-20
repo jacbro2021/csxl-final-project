@@ -17,13 +17,21 @@ import { EquipmentService } from './equipment.service';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { EquipmentCheckoutConfirmationComponent } from './equipment-checkout-confirmation/equipment-checkout-confirmation.component';
+import { AmbassadorEquipmentComponent } from './ambassador-equipment/ambassador-equipment.component';
+import { CheckoutRequestCard } from './widgets/checkout-request-card/checkout-request-card.widget';
+import { MatTableModule } from '@angular/material/table';
+import { MatSelect, MatSelectModule } from '@angular/material/select';
+import { StageCard } from './widgets/staged-checkout-request-card/staged-checkout-request-card.widget';
 
 @NgModule({
   declarations: [
     UserEquipmentComponent,
     EquipmentCard,
     WaiverComponent,
-    EquipmentCheckoutConfirmationComponent
+    EquipmentCheckoutConfirmationComponent,
+    AmbassadorEquipmentComponent,
+    CheckoutRequestCard,
+    StageCard
   ],
   imports: [
     CommonModule,
@@ -34,7 +42,9 @@ import { EquipmentCheckoutConfirmationComponent } from './equipment-checkout-con
     ReactiveFormsModule,
     FormsModule,
     MatFormFieldModule,
-    MatInputModule
+    MatInputModule,
+    MatTableModule,
+    MatSelectModule
   ]
 })
 export class EquipmentModule {}

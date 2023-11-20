@@ -1,5 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { EquipmentService } from '../equipment.service';
+import { Observable, tap, timer, pipe, Subscription } from 'rxjs';
+import { CheckoutRequestModel } from '../checkoutRequest.model';
 
 @Component({
   selector: 'app-equipment-checkout-confirmation',
@@ -13,5 +16,5 @@ export class EquipmentCheckoutConfirmationComponent {
     component: EquipmentCheckoutConfirmationComponent
   };
 
-  constructor(public router: Router) {}
+  constructor(private router: Router) {}
 }
