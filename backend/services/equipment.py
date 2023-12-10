@@ -2,24 +2,27 @@
 The equipment service allows the API to manipulate equipment in the database.
 """
 
+from datetime import datetime
 from fastapi import Depends
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from backend.entities.equipment_checkout_request_entity import (
     EquipmentCheckoutRequestEntity,
 )
+from backend.entities.staged_checkout_request_entity import StagedCheckoutRequestEntity
 from backend.entities.user_entity import UserEntity
+from backend.models.StagedCheckoutRequest import StagedCheckoutRequest
 from backend.models.equipment_checkout_request import EquipmentCheckoutRequest
 
 from backend.models.equipment_type import EquipmentType
+from backend.models.equipment_checkout import EquipmentCheckout
 from .permission import PermissionService
 
 from ..database import db_session
 from ..models.equipment import Equipment
 from ..entities.equipment_entity import EquipmentEntity
+from ..entities.equipment_checkout_entity import EquipmentCheckoutEntity
 from ..models import User
-
-from .exceptions import EquipmentNotFoundException, WaiverNotSignedException
 
 # Excluding this import for now, however, we will need to use in later sprints for handling different types of users
 # from .permission import PermissionService
@@ -33,7 +36,9 @@ class DuplicateEquipmentCheckoutRequestException(Exception):
     """DuplicateEquipmentCheckoutRequestException is raised when a user tries to make a second checkout request for the same equipment type"""
 
     def __init__(self, model: str):
-        super().__init__(f"User has already requested a checkout for {model}")
+        super().__init__(
+            f"You already have an active checkout or checkout request for {model}"
+        )
 
 
 class EquipmentCheckoutRequestNotFoundException(Exception):
@@ -41,6 +46,45 @@ class EquipmentCheckoutRequestNotFoundException(Exception):
 
     def __init__(self, request: EquipmentCheckoutRequest):
         super().__init__(f"Could not find request: {request}")
+
+
+class EquipmentAlreadyCheckedOutException(Exception):
+    """EquipmentAlreadyCheckedOutException is raised when a user tries to checkout an item that is already checked out"""
+
+    def __init__(self, id: int):
+        super().__init__(f"Equipment item with id: {id} is already checkout out")
+
+
+class EquipmentCheckoutNotFoundException(Exception):
+    """EquipmentCheckoutNotFoundException is raised when a user tries to return a checkout that is not found in the database"""
+
+    def __init__(self, id: int):
+        super().__init__(
+            f"Could not find active checkout for equipment item with id: {id}"
+        )
+
+
+class EquipmentNotFoundException(Exception):
+    """EquipmentNotFoundException is raised when trying to access a piece of equipment that does not exist"""
+
+    def __init__(self, id: int):
+        super().__init__(f"No Equipment found matching equipment_id: {id}")
+
+
+class WaiverNotSignedException(Exception):
+    """WaiverNotSignedException is raised when a user tries to make an equipment checkout request before they have signed the liability waiver"""
+
+    def __init__(self):
+        super().__init__(
+            "You must sign the liability waiver before you can request an equipment checkout"
+        )
+
+
+class StagedCheckoutRequestNotFoundException(Exception):
+    """StagedCheckoutRequestNotFoundException is raised when a user tries to access a staged checkout request that does not exist"""
+
+    def __init__(self, request: StagedCheckoutRequest):
+        super().__init__(f"Could not find staged checkout request: {request}")
 
 
 class EquipmentService:
@@ -63,36 +107,67 @@ class EquipmentService:
         # convert the query results into 'Equipment' models and return as a list
         return [result.to_model() for result in query_result]
 
-    # TODO: add param for user and save users pid in equipments list of pids
     def update(self, item: Equipment, subject: User) -> Equipment:
         """
         updates a specific equipment item.
 
         Args:
             model (Equipment): The model to update.
-            TODO: model (User): The user that is checking out the equipment.
+            model (User): The user that is checking out the equipment.
 
         Returns:
             Equipment: the checked out equipment.
+
+        Raises:
+            EquipmentNotFoundException if there is no equipment item with the same
+            id as the given item
         """
 
         # ensure user has ambassador permissions
-        self._permission.enforce(subject, "equipment.update", "equipment")
+        self._permission.enforce(subject, "equipment.crud.checkout", "equipment")
 
         # get item with matching equipment_id from db
         query = select(EquipmentEntity).where(
             EquipmentEntity.equipment_id == item.equipment_id
         )
         entity_item: EquipmentEntity | None = self._session.scalar(query)
-
+        # if item with matching id was found, update it
         if entity_item:
             entity_item.update(item)
 
             self._session.commit()
             return entity_item.to_model()
-
+        # if no item was found, raise exception
         else:
             raise EquipmentNotFoundException(item.equipment_id)
+
+    def get_equipment_by_id(self, id: int, subject: User) -> Equipment:
+        """
+        Gets a specific equipment item by its equipment id
+
+        Args:
+            int (id): the equipment id of the desired equipment item
+            model (User): The user that is searching for the equipment
+
+        Returns:
+            Equipment: the desired equipment item
+
+        Raises:
+            EquipmentNotFoundException if there is no equipment item with the given
+            equipment id
+        """
+        # ensure user has ambassador permissions
+        self._permission.enforce(subject, "equipment.view.checkout", "equipment")
+
+        # get item with matching equipment_id from db
+        query = select(EquipmentEntity).where(EquipmentEntity.equipment_id == id)
+        entity_item: EquipmentEntity | None = self._session.scalar(query)
+        # if item with matching id was found, return it
+        if entity_item:
+            return entity_item.to_model()
+        # if no item was found, raise exception
+        else:
+            raise EquipmentNotFoundException(id)
 
     def get_all_types(self) -> list[EquipmentType]:
         """
@@ -158,12 +233,12 @@ class EquipmentService:
             WaiverNotSignedException if the user has not signed the liability waiver.
         """
 
-        # check if the user has signed the liability waiver
+        # Check if the user has signed the liability waiver.
         if not user.signed_equipment_wavier:
             raise WaiverNotSignedException
 
-        # check if the user has already submitted a checkout request for the same type of equipment
-        obj = (
+        # Check if the user has already submitted a checkout request for the same type of equipment.
+        priorCheckoutRequest = (
             self._session.query(EquipmentCheckoutRequestEntity)
             .filter(
                 EquipmentCheckoutRequestEntity.model == request.model,
@@ -172,8 +247,29 @@ class EquipmentService:
             .one_or_none()
         )
 
+        # Check if the user has already submitted a staged request for the same type of equipment.
+        priorStagedRequest = (
+            self._session.query(StagedCheckoutRequestEntity)
+            .filter(
+                StagedCheckoutRequestEntity.model == request.model,
+                StagedCheckoutRequestEntity.pid == request.pid,
+            )
+            .one_or_none()
+        )
+
+        # Check if the user already has a checkout.
+        priorCheckout = (
+            self._session.query(EquipmentCheckoutEntity)
+            .filter(
+                EquipmentCheckoutEntity.model == request.model,
+                EquipmentCheckoutEntity.pid == request.pid,
+                EquipmentCheckoutEntity.is_active,
+            )
+            .one_or_none()
+        )
+
         # if the user is trying to send a duplicate request, raise exception
-        if obj:
+        if priorCheckoutRequest or priorStagedRequest or priorCheckout:
             raise DuplicateEquipmentCheckoutRequestException(request.model)
 
         # create new object
@@ -198,7 +294,7 @@ class EquipmentService:
         """
 
         self._permission.enforce(
-            subject, "equipment.delete_request", resource="equipment"
+            subject, "equipment.crud.checkout", resource="equipment"
         )
         # find object to delete
         obj = (
@@ -223,7 +319,7 @@ class EquipmentService:
         """Return a list of all equipment checkout requests in the db"""
         # enforce ambasssador permission
         self._permission.enforce(
-            subject, "equipment.get_all_requests", resource="equipment"
+            subject, "equipment.view.checkout", resource="equipment"
         )
         # create the query for getting all equipment checkout request entities.
         query = select(EquipmentCheckoutRequestEntity)
@@ -234,11 +330,6 @@ class EquipmentService:
 
     def get_equipment_for_request(self, subject: User, model: str) -> list[Equipment]:
         """returns a list of all available equipment corresponding to the checkout request's model"""
-
-        # enforce ambassador permission
-        self._permission.enforce(
-            subject, "equipment.get_equipment_for_request", "equipment"
-        )
 
         # query for all equipment that matches the checkout request model type AND is not checked out
         query = select(EquipmentEntity).where(
@@ -270,6 +361,194 @@ class EquipmentService:
         # if user not found, raise exception
         else:
             raise Exception(f"Could not find user {user.first_name} {user.last_name}")
+
+    def get_all_staged_requests(self, subject: User) -> list[StagedCheckoutRequest]:
+        """Return a list of all staged checkout requests in the db"""
+
+        # enforce ambasssador permission
+        self._permission.enforce(
+            subject, "equipment.view.checkout", resource="equipment"
+        )
+
+        # create the query for getting all equipment checkout request entities.
+        query = select(StagedCheckoutRequestEntity)
+        # execute the query grabbing each row from the equipment table
+        query_result = self._session.scalars(query).all()
+        # convert the query results into 'EquipmentReservationRequest' models and return as a list
+        return [result.to_model() for result in query_result]
+
+    def create_staged_request(
+        self, subject: User, staged_request: StagedCheckoutRequest
+    ) -> StagedCheckoutRequest:
+        """Create a staged checkout request"""
+
+        # enforce ambasssador permission
+        self._permission.enforce(
+            subject, "equipment.crud.checkout", resource="equipment"
+        )
+
+        # set id_choices field to ids of available equipment
+        staged_request.id_choices = [
+            eq.equipment_id
+            for eq in self.get_equipment_for_request(subject, staged_request.model)
+        ]
+
+        # create new object
+        staged_checkout_request_entity = StagedCheckoutRequestEntity.from_model(
+            staged_request
+        )
+
+        # add new object to table and commit changes
+        self._session.add(staged_checkout_request_entity)
+        self._session.commit()
+
+        # return added object
+        return staged_checkout_request_entity.to_model()
+
+    def delete_staged_request(
+        self, subject: User, staged_request: StagedCheckoutRequest
+    ) -> None:
+        """Delete a staged checkout request"""
+
+        # enforce ambasssador permission
+        self._permission.enforce(
+            subject, "equipment.crud.checkout", resource="equipment"
+        )
+
+        # find stage request entity to delete
+        staged_entity = (
+            self._session.query(StagedCheckoutRequestEntity)
+            .filter(
+                StagedCheckoutRequestEntity.pid == staged_request.pid,
+                StagedCheckoutRequestEntity.model == staged_request.model,
+            )
+            .one_or_none()
+        )
+
+        if staged_entity:
+            # delete entity from db and commit changes
+            self._session.delete(staged_entity)
+            self._session.commit()
+        else:
+            # raise exception
+            raise StagedCheckoutRequestNotFoundException(staged_request)
+
+    def get_all_active_checkouts(self, subject: User) -> list[EquipmentCheckout]:
+        """
+        Gets all checkouts that are "active" i.e. that item is currently checked out
+
+        Returns:
+            An array of all EquipmentCheckouts, as models, that are "active"
+        """
+        self._permission.enforce(subject, "equipment.view.checkout", "equipment")
+        # Create the query for getting all equipment checkout entities.
+        query = select(EquipmentCheckoutEntity).where(
+            EquipmentCheckoutEntity.is_active == True
+        )
+        # execute the query grabbing each row from the equipment table
+        query_result = self._session.scalars(query).all()
+        # convert the query results into 'Equipment' models and return as a list
+        return [result.to_model() for result in query_result]
+
+    def create_checkout(
+        self, checkout: EquipmentCheckout, subject: User
+    ) -> EquipmentCheckout:
+        """
+        Creates a new checkout entity and adds it to the database
+        Updates the is_checked_out field of the equipment item being checked out to be True
+
+        Args:
+            Request (EquipmentCheckout): the checkout to add.
+            user (User): User that is trying to
+
+        Returns:
+            The checkout that was added
+
+        Raises:
+            EquipmentAlreadyCheckedOutException if the equipment already has an active
+            checkout associated with it
+        """
+        self._permission.enforce(subject, "equipment.crud.checkout", "equipment")
+
+        equipment_checkout_entity = EquipmentCheckoutEntity.from_model(checkout)
+
+        # add new object to table
+        self._session.add(equipment_checkout_entity)
+
+        # get equipment model to be updated
+        equipment_item: Equipment = self.get_equipment_by_id(
+            checkout.equipment_id, subject
+        )
+        # if item is already checked out, raise exception
+        if equipment_item.is_checked_out:
+            raise EquipmentAlreadyCheckedOutException(checkout.equipment_id)
+        # change is_checked_out field to true
+        equipment_item.is_checked_out = True
+        # update equipment entity to be checked out
+        self.update(equipment_item, subject)
+
+        self._session.commit()
+
+        return equipment_checkout_entity.to_model()
+
+    def return_checkout(
+        self, checkout: EquipmentCheckout, subject: User
+    ) -> EquipmentCheckout:
+        """
+        Changes the is_active field of the checkout being returned to False
+        Changes the end_at field of the checkout to the time of the return
+        Changes the is_checked_out field of the equipment item being returned to be False
+
+        Args:
+            checkout (EquipmentCheckout): the checkout being returned
+            subject (User): the user confirming the checkout return
+
+        Returns:
+            the checkout that was returned
+
+        Raises:
+            Exception if checkout to be returned is not active
+            EquipmentCheckoutNotFoundException if checkout to be returned is not found in the database
+        """
+        # enforce authorization
+        # TODO add method specific permission
+        self._permission.enforce(subject, "equipment.crud.checkout", "equipment")
+        # ensure that checkout is active
+        if not checkout.is_active:
+            raise Exception("The equipment you are trying to return is not checked out")
+
+        # get equipment model to be updated
+        equipment_item: Equipment = self.get_equipment_by_id(
+            checkout.equipment_id, subject
+        )
+        # change is_checked_out field to false
+        equipment_item.is_checked_out = False
+        # update equipment entity to be checked out
+        self.update(equipment_item, subject)
+
+        # get matching checkout from the db
+        # matching equipment_id and is_active will ensure it is the same
+        # checkout, there can only be one active checkout at once for a given item
+        query = select(EquipmentCheckoutEntity).where(
+            EquipmentCheckoutEntity.equipment_id == checkout.equipment_id,
+            EquipmentCheckoutEntity.is_active == checkout.is_active,
+        )
+        entity_item: EquipmentCheckoutEntity | None = self._session.scalar(query)
+
+        # set time that the return happened
+        checkout.end_at = datetime.now()
+        # set is_active to false
+        checkout.is_active = False
+
+        # if matching checkout exists, update it
+        if entity_item:
+            entity_item.update(checkout)
+
+            self._session.commit()
+            return entity_item.to_model()
+        # if no checkout was found, raise exception
+        else:
+            raise EquipmentCheckoutNotFoundException(checkout.equipment_id)
 
     # TODO: Uncomment during sp02 if we decide to add admin functions for adding/deleting equipment.
     # def add_item(self, item: Equipment) -> Equipment:

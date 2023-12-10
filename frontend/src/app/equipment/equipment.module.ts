@@ -9,6 +9,7 @@ import { WaiverComponent } from './waiver/waiver.component';
 import { EquipmentCard } from './widgets/equipment-card/equipment-card.widget';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
+import { MatTabsModule } from '@angular/material/tabs';
 
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
@@ -22,6 +23,7 @@ import { CheckoutRequestCard } from './widgets/checkout-request-card/checkout-re
 import { MatTableModule } from '@angular/material/table';
 import { MatSelect, MatSelectModule } from '@angular/material/select';
 import { StageCard } from './widgets/staged-checkout-request-card/staged-checkout-request-card.widget';
+import { EquipmentCheckoutCard } from './widgets/equipment-checkout-card/equipment-checkout-card.widget';
 
 @NgModule({
   declarations: [
@@ -31,7 +33,8 @@ import { StageCard } from './widgets/staged-checkout-request-card/staged-checkou
     EquipmentCheckoutConfirmationComponent,
     AmbassadorEquipmentComponent,
     CheckoutRequestCard,
-    StageCard
+    StageCard,
+    EquipmentCheckoutCard
   ],
   imports: [
     CommonModule,
@@ -44,7 +47,8 @@ import { StageCard } from './widgets/staged-checkout-request-card/staged-checkou
     MatFormFieldModule,
     MatInputModule,
     MatTableModule,
-    MatSelectModule
+    MatSelectModule,
+    MatTabsModule
   ]
 })
 export class EquipmentModule {}
